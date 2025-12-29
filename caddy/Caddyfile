@@ -1,0 +1,21 @@
+{
+  # for local network demo (internal CA)
+  auto_https disable_redirects
+}
+
+http://{$PWA_HOST} {
+  @ca path /caddy-ca.crt
+  handle @ca {
+    root * /data/pki/authorities/local
+    rewrite * /root.crt
+    file_server
+  }
+  redir https://{$PWA_HOST}{uri}
+}
+
+https://{$PWA_HOST} {
+  tls internal
+  encode gzip
+  reverse_proxy app:3000
+}
+
