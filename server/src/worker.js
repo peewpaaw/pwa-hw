@@ -46,7 +46,12 @@ export function startPushWorker({ db, push, intervalMs = 1000, logger = console 
           if (statusCode === 404 || statusCode === 410) {
             db.prepare("DELETE FROM push_subscriptions WHERE id = ?").run(subRow.id);
           } else {
-            logger.warn?.("push send failed", { requestId: reqRow.id, statusCode, err: String(err) });
+            const body = err?.body || err?.message || String(err);
+            logger.warn?.("push send failed", {
+              requestId: reqRow.id,
+              statusCode,
+              err: body,
+            });
           }
         }
       }

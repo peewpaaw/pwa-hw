@@ -47,7 +47,7 @@ if (fs.existsSync(PUBLIC_DIR)) {
 }
 
 // SPA fallback
-app.get(["/", "/app", "/app/*"], (req, res) => {
+const sendIndexHtml = (req, res) => {
   if (!fs.existsSync(INDEX_HTML)) {
     return res
       .status(500)
@@ -55,7 +55,10 @@ app.get(["/", "/app", "/app/*"], (req, res) => {
       .send("Client is not built. PUBLIC_DIR/index.html is missing.");
   }
   return res.sendFile(INDEX_HTML);
-});
+};
+
+app.get("/", sendIndexHtml);
+app.get(/^\/app(\/.*)?$/, sendIndexHtml);
 
 startPushWorker({ db, push });
 
