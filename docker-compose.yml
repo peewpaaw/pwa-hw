@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+      - DATA_DIR=/data
+      - PUBLIC_DIR=/app/server/public
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.8
+    depends_on:
+      - app
+    environment:
+      - PWA_HOST=${PWA_HOST}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    restart: unless-stopped
+

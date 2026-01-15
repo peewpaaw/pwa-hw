@@ -1,0 +1,40 @@
+{
+  # for local network demo (internal CA)
+  auto_https disable_redirects
+  debug
+  # Когда клиент не шлёт SNI (curl/старые клиенты по IP) — подставляем наш PWA_HOST
+  default_sni {$PWA_HOST}
+}
+
+http://{$PWA_HOST} {
+  @ca path /caddy-ca.crt
+  handle @ca {
+    # Caddy хранит CA в /data/caddy/pki/authorities/local
+    root * /data/caddy/pki/authorities/local
+    rewrite * /root.crt
+    header Content-Type "application/x-x509-ca-cert"
+    file_server
+  }
+  redir https://{$PWA_HOST}{uri}
+}
+
+https://{$PWA_HOST} {
+  @ca path /caddy-ca.crt
+  handle @ca {
+    # Caddy хранит CA в /data/caddy/pki/authorities/local
+    root * /data/caddy/pki/authorities/local
+    rewrite * /root.crt
+    header Content-Type "application/x-x509-ca-cert"
+    file_server
+  }
+
+  tls {
+    issuer internal
+    # Разрешаем TLS 1.2 и 1.3 + максимально совместимые шифры TLS 1.2
+    protocols tls1.2 tls1.3
+    ciphers TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  }
+  encode gzip
+  reverse_proxy app:3000
+}
+
